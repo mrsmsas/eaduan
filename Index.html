@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f3a5f">
+<title>eAduan MRSM SAS</title>
+<style>
+  :root{--navy:#1f3a5f;--bg:#f4f6f9;--card:#fff;--line:#dfe4ea;--muted:#5f6b7a;--ink:#1b1f24;
+    --ok:#1e7a46;--okbg:#e8f5ee;--warn:#9a5b00;--warnbg:#fff4e0;--bad:#b3261e;--badbg:#fdecea;
+    --info:#1d4f91;--infobg:#e8f0fb;--ungu:#6b3fa0;--ungubg:#f1e8fb}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
+  header{background:var(--navy);color:#fff;text-align:center;padding:18px 16px 14px}
+  header img{height:56px;display:block;margin:0 auto 8px}
+  header h1{margin:0;font-size:20px;letter-spacing:.3px}
+  header p{margin:2px 0 0;font-size:13px;opacity:.85}
+  nav{display:flex;background:var(--navy);position:sticky;top:0;z-index:5;border-top:1px solid rgba(255,255,255,.12)}
+  nav button{flex:1;background:none;border:0;color:rgba(255,255,255,.72);padding:12px 4px;font:inherit;font-size:14px;font-weight:600;border-bottom:3px solid transparent;cursor:pointer}
+  nav button.aktif{color:#fff;border-bottom-color:#f6c445}
+  main{max-width:720px;margin:0 auto;padding:16px 16px 32px}
+  .kad{background:var(--card);border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+  .kad h2{font-size:16px;margin:0 0 12px;color:var(--navy)}
+  label{display:block;font-size:13px;font-weight:600;margin:12px 0 6px}
+  .wajib{color:var(--bad)}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:inherit}
+  select:disabled{background:#f0f2f5;color:#9aa3ad}
+  textarea{min-height:90px;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:2px solid #9bb6dc;border-color:#9bb6dc}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  @media(max-width:520px){.grid2{grid-template-columns:1fr}}
+  .kategori{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .kategori button{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;font-size:13px;font-weight:600;color:var(--ink);display:flex;gap:8px;align-items:center;min-height:62px}
+  .kategori .ikon{font-size:22px;flex:none}
+  .kategori button.pilih{border-color:var(--navy);background:var(--infobg);color:var(--navy)}
+  .segmen{display:flex;gap:6px;flex-wrap:wrap}
+  .segmen label{margin:0;flex:1;min-width:84px}
+  .segmen input{position:absolute;opacity:0;pointer-events:none}
+  .segmen span{display:block;text-align:center;padding:9px 6px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;cursor:pointer;background:#fff}
+  .segmen input:checked+span{border-color:var(--navy);background:var(--infobg);color:var(--navy)}
+  .segmen input:focus-visible+span{outline:2px solid #9bb6dc}
+  .gambar{display:flex;gap:8px;flex-wrap:wrap}
+  .gambar .g{position:relative;width:84px;height:84px;border-radius:8px;overflow:hidden;background:#e9edf2}
+  .gambar .g img{width:100%;height:100%;object-fit:cover;display:block}
+  .gambar .g button{position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:15px;line-height:24px;padding:0}
+  .gambar .tambah{width:84px;height:84px;border:1.5px dashed #a9b4c2;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:12px;cursor:pointer;background:#fff}
+  .gambar .tambah span{font-size:22px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--navy);color:#fff;border:1.5px solid var(--navy);border-radius:8px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}
+  .btn.penuh{width:100%;margin-top:18px}
+  .btn.sekunder{background:#fff;color:var(--navy)}
+  .btn.bahaya{background:#fff;color:var(--bad);border-color:var(--bad)}
+  .btn.bahaya.isi{background:var(--bad);color:#fff}
+  .btn:disabled{opacity:.55;cursor:wait}
+  .nota{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .lencana{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+  .s-Baru{background:var(--infobg);color:var(--info)}
+  .s-DalamTindakan,.s-TidakSiap{background:var(--warnbg);color:var(--warn)}
+  .s-PerlukanMasa{background:var(--ungubg);color:var(--ungu)}
+  .s-Selesai,.s-Ditutup,.s-Siap{background:var(--okbg);color:var(--ok)}
+  .k-Kecemasan{background:var(--badbg);color:var(--bad)}
+  .k-Tinggi{background:var(--warnbg);color:var(--warn)}
+  .berjaya{text-align:center}
+  .berjaya .no{font-size:24px;font-weight:800;color:var(--navy);letter-spacing:1px;margin:6px 0 10px}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+  .chips button{white-space:nowrap;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .chips button.aktif{background:var(--navy);border-color:var(--navy);color:#fff}
+  .chips b{margin-left:6px;opacity:.75}
+  .tiket{background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.07);cursor:pointer;border-left:4px solid var(--line)}
+  .tiket.Kecemasan{border-left-color:var(--bad)}
+  .tiket.Tinggi{border-left-color:#e0a030}
+  .tiket .atas{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+  .tiket .tajuk{font-weight:700;margin:4px 0 2px}
+  .tiket .lok{font-size:13px;color:var(--muted)}
+  .kosong{text-align:center;color:var(--muted);padding:28px 8px}
+  .picbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+  .picbar small{color:var(--muted);display:block}
+  .kepala{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+  dl.info{display:grid;grid-template-columns:112px 1fr;gap:6px 10px;margin:12px 0 0;font-size:14px}
+  dl.info dt{color:var(--muted)}
+  dl.info dd{margin:0;word-break:break-word}
+  .keterangan{white-space:pre-wrap;margin:12px 0 0;padding-top:12px;border-top:1px solid var(--line)}
+  .garis{position:relative;padding-left:20px}
+  .garis:before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  .log{position:relative;margin-bottom:16px}
+  .log:last-child{margin-bottom:0}
+  .log:before{content:"";position:absolute;left:-19px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--navy)}
+  .log .masa{font-size:12px;color:var(--muted);margin-bottom:3px}
+  .log p{white-space:pre-wrap;margin:4px 0 0}
+  .thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .thumbs a{width:76px;height:76px;border-radius:6px;overflow:hidden;background:#e9edf2;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--info);text-align:center;text-decoration:none}
+  .thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+  .modal{position:fixed;inset:0;background:rgba(15,23,35,.5);display:none;align-items:flex-end;justify-content:center;z-index:20}
+  .modal.buka{display:flex}
+  .modal .isi{background:var(--bg);width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 16px 20px}
+  @media(min-width:760px){.modal{align-items:center}.modal .isi{border-radius:16px}}
+  .modal .bar{display:flex;justify-content:flex-end;margin-bottom:4px}
+  .modal .tutup{background:#fff;border:1px solid var(--line);border-radius:50%;width:34px;height:34px;font-size:20px;line-height:1;cursor:pointer;color:var(--muted)}
+  .aksi{display:flex;gap:8px;margin-top:4px}
+  .aksi .btn{flex:1}
+  .semak-kotak{display:flex;gap:8px;align-items:center;font-weight:500;margin-top:14px}
+  .semak-kotak input{width:auto}
+  #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1b1f24;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;display:none;z-index:30;max-width:90vw;text-align:center}
+  .ralat{background:var(--badbg);color:var(--bad);padding:10px 12px;border-radius:8px;font-size:13.5px;margin-top:12px;display:none}
+  footer{text-align:center;font-size:12px;color:var(--muted);padding:8px 16px 24px}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <img src="logo.png" alt="Logo MRSM SAS" onerror="this.remove()">
+  <h1>eAduan MRSM SAS</h1>
+  <p>Sistem Berpusat Aduan dan Log Kerja</p>
+</header>
+
+<nav>
+  <button type="button" data-view="aduan" class="aktif">Buat Aduan</button>
+  <button type="button" data-view="semak">Semak Tiket</button>
+  <button type="button" data-view="pic">PIC</button>
+</nav>
+
+<main>
+  <!-- ================= BUAT ADUAN ================= -->
+  <section id="v-aduan">
+    <form id="f-aduan" novalidate>
+      <div class="kad">
+        <h2>1. Kategori kerosakan <span class="wajib">*</span></h2>
+        <div class="kategori" id="kategori"><div class="nota">Memuatkan…</div></div>
+      </div>
+
+      <div class="kad">
+        <h2>2. Lokasi</h2>
+        <div class="grid2">
+          <div><label for="bangunan">Bangunan</label><select id="bangunan"></select></div>
+          <div><label for="blok">Blok</label><select id="blok"></select></div>
+          <div><label for="aras">Aras</label><select id="aras"></select></div>
+          <div><label for="ruang">Ruang</label><select id="ruang"></select></div>
+        </div>
+        <label for="lokasi_lain">Lokasi lain / maklumat tambahan</label>
+        <input id="lokasi_lain" maxlength="200" placeholder="Contoh: tepi tangga, berhampiran surau">
+        <div class="nota">Pilih bangunan, atau isi lokasi lain jika tiada dalam senarai.</div>
+      </div>
+
+      <div class="kad">
+        <h2>3. Butiran aduan</h2>
+        <label for="tajuk">Tajuk ringkas <span class="wajib">*</span></label>
+        <input id="tajuk" maxlength="120" placeholder="Contoh: Lampu kelas tidak menyala">
+        <label for="keterangan">Keterangan <span class="wajib">*</span></label>
+        <textarea id="keterangan" maxlength="2000" placeholder="Terangkan kerosakan dengan ringkas"></textarea>
+        <label>Tahap kesegeraan</label>
+        <div class="segmen">
+          <label><input type="radio" name="kes" value="Rendah"><span>Rendah</span></label>
+          <label><input type="radio" name="kes" value="Sederhana" checked><span>Sederhana</span></label>
+          <label><input type="radio" name="kes" value="Tinggi"><span>Tinggi</span></label>
+          <label><input type="radio" name="kes" value="Kecemasan"><span>Kecemasan</span></label>
+        </div>
+        <label>Gambar (maksimum 3)</label>
+        <div class="gambar" id="g-aduan"></div>
+      </div>
+
+      <div class="kad">
+        <h2>4. Maklumat pengadu</h2>
+        <label for="nama">Nama <span class="wajib">*</span></label>
+        <input id="nama" maxlength="100" autocomplete="name">
+        <div class="grid2">
+          <div><label for="emel">Emel <span class="wajib">*</span></label><input id="emel" type="email" maxlength="120" autocomplete="email"></div>
+          <div><label for="telefon">No. telefon</label><input id="telefon" type="tel" maxlength="20" autocomplete="tel"></div>
+        </div>
+        <div class="nota">Pengesahan dan status aduan akan dihantar ke emel ini.</div>
+        <div class="ralat" id="r-aduan"></div>
+        <button class="btn penuh" id="b-hantar" type="submit">Hantar Aduan</button>
+      </div>
+    </form>
+
+    <div class="kad berjaya hidden" id="ok-aduan">
+      <div style="font-size:40px">✅</div>
+      <h2>Aduan berjaya dihantar</h2>
+      <div class="nota">No. tiket anda</div>
+      <div class="no" id="ok-no"></div>
+      <p class="nota" id="ok-pic"></p>
+      <p class="nota">Pengesahan telah dihantar ke emel anda. Simpan No. tiket untuk semakan status.</p>
+      <div class="aksi">
+        <button class="btn sekunder" id="b-salin" type="button">Salin No. Tiket</button>
+        <button class="btn" id="b-baru" type="button">Buat aduan baru</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SEMAK TIKET ================= -->
+  <section id="v-semak" class="hidden">
+    <form id="f-semak" class="kad" novalidate>
+      <h2>Semak status tiket</h2>
+      <div class="grid2">
+        <div><label for="s-tiket">No. tiket</label><input id="s-tiket" placeholder="ELK-2610-0001" autocapitalize="characters"></div>
+        <div><label for="s-emel">Emel pengadu</label><input id="s-emel" type="email" autocomplete="email"></div>
+      </div>
+      <div class="ralat" id="r-semak"></div>
+      <button class="btn penuh" id="b-semak" type="submit">Semak</button>
+    </form>
+    <div id="hasil-semak"></div>
+  </section>
+
+  <!-- ================= PIC ================= -->
+  <section id="v-pic" class="hidden">
+    <form id="f-login" class="kad" novalidate>
+      <h2>Log masuk PIC</h2>
+      <label for="l-id">No. Gaji</label>
+      <input id="l-id" autocomplete="username" autocapitalize="characters">
+      <label for="l-pin">PIN</label>
+      <input id="l-pin" type="password" inputmode="numeric" autocomplete="current-password">
+      <div class="ralat" id="r-login"></div>
+      <button class="btn penuh" id="b-login" type="submit">Log Masuk</button>
+    </form>
+
+    <div id="pic-papan" class="hidden">
+      <div class="picbar">
+        <div><b id="pic-nama"></b><small id="pic-peranan"></small></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn sekunder" id="b-muat" type="button" title="Muat semula" aria-label="Muat semula">↻</button>
+          <button class="btn sekunder" id="b-keluar" type="button">Log Keluar</button>
+        </div>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div id="senarai"></div>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="isi">
+    <div class="bar"><button class="tutup" id="m-tutup" type="button" aria-label="Tutup">×</button></div>
+    <div id="m-isi"></div>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<footer>Dibangunkan Oleh Unit Sains dan Unit ICT MRSM SAS 2026</footer>
+
+<script>
+/* ============ TETAPAN ============ */
+const API_URL = 'TAMPAL_URL_EXEC_DI_SINI';
+
+const IKON = { building:'🏢', bolt:'⚡', computer:'💻', restaurant:'🍽️', broom:'🧹', shield:'🛡️', chat:'💬' };
+const TAB = ['Baru', 'Dalam Tindakan', 'Perlukan Masa', 'Selesai'];
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const EMEL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+let INDUK = null, KATEGORI_PILIH = '', SESI = null, TIKET = [], TAPIS = 'Baru';
+const GAMBAR = { aduan: [], log: [] };
+let lukisGambarAduan = () => {};
+
+/* ============ Pembantu ============ */
+async function api(action, data) {
+  if (!/^https:\/\/script\.google\.com\//.test(API_URL)) throw new Error('API_URL belum ditetapkan dalam index.html.');
+  let r;
+  try {
+    r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, data: data || {} }) });
+  } catch (e) { throw new Error('Tidak dapat menghubungi pelayan. Semak sambungan internet.'); }
+  let j;
+  try { j = await r.json(); } catch (e) { throw new Error('Pelayan tidak memberi respons yang sah.'); }
+  if (!j.ok) {
+    if (j.ralat === 'SESI_TAMAT') { keluar(); toast('Sesi tamat. Sila log masuk semula.'); throw new Error('Sesi tamat.'); }
+    throw new Error(j.ralat);
+  }
+  return j.data;
+}
+function toast(m) { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3500); }
+function ralat(id, m) { const e = $(id); if (!e) return; e.textContent = m || ''; e.style.display = m ? 'block' : 'none'; }
+function fmt(iso) { if (!iso) return '-'; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' }); }
+function fmtTarikh(s) { if (!s) return '-'; const d = new Date(s + 'T00:00:00'); return isNaN(d) ? s : d.toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric' }); }
+function lencana(s) { return `<span class="lencana s-${esc(String(s).replace(/\s/g, ''))}">${esc(s)}</span>`; }
+function sibuk(btn, ya, teks) { if (!btn) return; if (ya) { btn.dataset.asal = btn.textContent; btn.textContent = teks || 'Sila tunggu…'; } else if (btn.dataset.asal) btn.textContent = btn.dataset.asal; btn.disabled = ya; }
+
+function mampat(file) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, 1280 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(img.src);
+      res(c.toDataURL('image/jpeg', 0.7));
+    };
+    img.onerror = rej;
+    img.src = URL.createObjectURL(file);
+  });
+}
+const muatanGambar = kunci => GAMBAR[kunci].map(g => ({ base64: g.split(',')[1], mime: 'image/jpeg' }));
+
+function pasangGambar(boxId, kunci) {
+  const box = $(boxId);
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*'; input.multiple = true; input.hidden = true;
+  box.after(input);
+  input.onchange = async () => {
+    for (const f of [...input.files]) {
+      if (GAMBAR[kunci].length >= 3) { toast('Maksimum 3 gambar.'); break; }
+      try { GAMBAR[kunci].push(await mampat(f)); } catch (e) { toast('Gagal membaca gambar ' + f.name); }
+    }
+    input.value = ''; lukis();
+  };
+  function lukis() {
+    box.innerHTML = GAMBAR[kunci].map((g, i) => `<div class="g"><img src="${g}" alt="Gambar ${i + 1}"><button type="button" data-i="${i}" aria-label="Buang gambar">×</button></div>`).join('')
+      + (GAMBAR[kunci].length < 3 ? '<div class="tambah" role="button" tabindex="0"><span>📷</span>Tambah</div>' : '');
+    box.querySelectorAll('.g button').forEach(b => b.onclick = () => { GAMBAR[kunci].splice(+b.dataset.i, 1); lukis(); });
+    const t = box.querySelector('.tambah');
+    if (t) { t.onclick = () => input.click(); t.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } }; }
+  }
+  lukis();
+  return lukis;
+}
+
+function thumbs(ids) {
+  if (!ids || !ids.length) return '';
+  return `<div class="thumbs">${ids.map(id => {
+    const i = encodeURIComponent(id);
+    return `<a href="https://drive.google.com/file/d/${i}/view" target="_blank" rel="noopener"><img src="https://drive.google.com/thumbnail?id=${i}&sz=w300" alt="Gambar" loading="lazy" onerror="this.replaceWith('Buka gambar')"></a>`;
+  }).join('')}</div>`;
+}
+
+/* ============ Navigasi ============ */
+function tukarView(v) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('aktif', b.dataset.view === v));
+  ['aduan', 'semak', 'pic'].forEach(x => $('v-' + x).classList.toggle('hidden', x !== v));
+  window.scrollTo(0, 0);
+  if (v === 'pic' && SESI) muatTiket();
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => tukarView(b.dataset.view));
+
+/* ============ Data induk & lokasi ============ */
+function isiSelect(id, arr, key, kosong) {
+  const s = $(id);
+  s.innerHTML = `<option value="">${kosong}</option>` + arr.map(o => `<option value="${esc(o[key])}">${esc(o.nama)}</option>`).join('');
+  s.disabled = arr.length === 0;
+}
+function resetLokasi(dari) {
+  const urutan = ['blok', 'aras', 'ruang'];
+  urutan.slice(urutan.indexOf(dari)).forEach(id => isiSelect(id, [], '', '—'));
+}
+$('bangunan').onchange = () => { const v = $('bangunan').value; resetLokasi('blok'); if (v) isiSelect('blok', INDUK.blok.filter(b => b.bangunan_id === v), 'blok_id', '— Pilih blok —'); };
+$('blok').onchange = () => { const v = $('blok').value; resetLokasi('aras'); if (v) isiSelect('aras', INDUK.aras.filter(a => a.blok_id === v), 'aras_id', '— Pilih aras —'); };
+$('aras').onchange = () => { const v = $('aras').value; resetLokasi('ruang'); if (v) isiSelect('ruang', INDUK.ruang.filter(r => r.aras_id === v), 'ruang_id', '— Pilih ruang —'); };
+
+function pilihKategori(id) {
+  KATEGORI_PILIH = INDUK && INDUK.kategori.some(k => k.kategori_id === id) ? id : '';
+  $('kategori').querySelectorAll('button').forEach(b => b.classList.toggle('pilih', b.dataset.id === KATEGORI_PILIH));
+}
+
+async function muatInduk() {
+  try { INDUK = await api('getDataInduk'); }
+  catch (e) { $('kategori').innerHTML = `<div class="ralat" style="display:block">Gagal memuatkan data: ${esc(e.message)}</div>`; return; }
+  $('kategori').innerHTML = INDUK.kategori.map(k =>
+    `<button type="button" data-id="${esc(k.kategori_id)}"><span class="ikon">${IKON[k.ikon] || '📌'}</span><span>${esc(k.nama.replace(/^Aduan\s+/i, ''))}</span></button>`).join('');
+  $('kategori').querySelectorAll('button').forEach(b => b.onclick = () => pilihKategori(b.dataset.id));
+  isiSelect('bangunan', INDUK.bangunan, 'bangunan_id', '— Pilih bangunan —');
+  resetLokasi('blok');
+  const q = new URLSearchParams(location.search);
+  if (q.get('kategori')) pilihKategori(q.get('kategori').toUpperCase());
+}
+
+/* ============ Buat aduan ============ */
+$('f-aduan').onsubmit = async e => {
+  e.preventDefault(); ralat('r-aduan', '');
+  const d = {
+    kategori_id: KATEGORI_PILIH,
+    bangunan_id: $('bangunan').value, blok_id: $('blok').value, aras_id: $('aras').value, ruang_id: $('ruang').value,
+    lokasi_lain: $('lokasi_lain').value.trim(),
+    tajuk: $('tajuk').value.trim(), keterangan: $('keterangan').value.trim(),
+    kesegeraan: document.querySelector('input[name=kes]:checked').value,
+    nama: $('nama').value.trim(), emel: $('emel').value.trim(), telefon: $('telefon').value.trim(),
+    gambar: muatanGambar('aduan')
+  };
+  const silap = !d.kategori_id ? 'Pilih kategori kerosakan.'
+    : (!d.bangunan_id && !d.lokasi_lain) ? 'Pilih bangunan, atau isi lokasi lain.'
+    : !d.tajuk ? 'Isi tajuk ringkas.'
+    : !d.keterangan ? 'Isi keterangan aduan.'
+    : !d.nama ? 'Isi nama anda.'
+    : !EMEL_RE.test(d.emel) ? 'Isi emel yang sah.' : '';
+  if (silap) { ralat('r-aduan', silap); return; }
+
+  const b = $('b-hantar'); sibuk(b, true, 'Menghantar…');
+  try {
+    const r = await api('hantarAduan', d);
+    $('ok-no').textContent = r.tiket_id;
+    $('ok-pic').textContent = r.pic_nama ? 'Aduan telah dihantar kepada PIC: ' + r.pic_nama : 'Aduan akan diagihkan oleh admin.';
+    $('f-aduan').classList.add('hidden'); $('ok-aduan').classList.remove('hidden');
+    window.scrollTo(0, 0);
+  } catch (err) { ralat('r-aduan', err.message); }
+  finally { sibuk(b, false); }
+};
+$('b-salin').onclick = () => {
+  const no = $('ok-no').textContent;
+  (navigator.clipboard ? navigator.clipboard.writeText(no) : Promise.reject()).then(() => toast('No. tiket disalin.'), () => toast(no));
+};
+$('b-baru').onclick = () => {
+  ['tajuk', 'keterangan', 'lokasi_lain'].forEach(id => $(id).value = '');
+  document.querySelector('input[name=kes][value=Sederhana]').checked = true;
+  pilihKategori(''); $('bangunan').value = ''; resetLokasi('blok');
+  GAMBAR.aduan = []; lukisGambarAduan();
+  $('ok-aduan').classList.add('hidden'); $('f-aduan').classList.remove('hidden');
+  window.scrollTo(0, 0);
+};
+
+/* ============ Paparan tiket ============ */
+function kadTiket(a, penuh) {
+  return `<div class="kad">
+    <div class="kepala"><div><div class="nota" style="margin:0">${esc(a.tiket_id)}</div><h2 style="margin:2px 0 0">${esc(a.tajuk)}</h2></div>${lencana(a.status)}</div>
+    <dl class="info">
+      <dt>Kategori</dt><dd>${esc(a.kategori)}</dd>
+      <dt>Lokasi</dt><dd>${esc(a.lokasi)}</dd>
+      <dt>Kesegeraan</dt><dd>${esc(a.kesegeraan)}</dd>
+      <dt>Tarikh aduan</dt><dd>${fmt(a.tarikh_aduan)}</dd>
+      <dt>PIC</dt><dd>${esc(a.pic_nama || 'Belum diagihkan')}</dd>
+      ${a.jangka_siap && a.status !== 'Selesai' ? `<dt>Jangka siap</dt><dd>${fmtTarikh(a.jangka_siap)}</dd>` : ''}
+      ${a.tarikh_selesai ? `<dt>Tarikh selesai</dt><dd>${fmt(a.tarikh_selesai)}</dd>` : ''}
+      ${penuh ? `<dt>Pengadu</dt><dd>${esc(a.nama_pengadu)}<br><a href="mailto:${esc(a.emel_pengadu)}">${esc(a.emel_pengadu)}</a>${a.telefon ? `<br><a href="tel:${esc(a.telefon)}">${esc(a.telefon)}</a>` : ''}</dd>` : ''}
+    </dl>
+    <div class="keterangan">${esc(a.keterangan)}</div>
+    ${thumbs(a.gambar)}
+  </div>${kadLog(a.log)}`;
+}
+function kadLog(logs) {
+  if (!logs || !logs.length) return '<div class="kad"><h2>Log kerja</h2><div class="nota" style="margin:0">Belum ada log kerja.</div></div>';
+  return `<div class="kad"><h2>Log kerja</h2><div class="garis">${logs.map(l => `
+    <div class="log">
+      <div class="masa">${fmt(l.tarikh_log)} · ${esc(l.pic_nama)}</div>
+      ${lencana(l.status_kerja)}
+      <p>${esc(l.tindakan)}</p>
+      ${l.status_kerja === 'Perlukan Masa' ? `<div class="nota">Jangka siap ${fmtTarikh(l.jangka_siap)}${l.sebab_lewat ? ' · ' + esc(l.sebab_lewat) : ''}</div>` : ''}
+      ${thumbs(l.gambar)}
+    </div>`).join('')}</div></div>`;
+}
+
+/* ============ Semak tiket ============ */
+$('f-semak').onsubmit = async e => {
+  e.preventDefault(); ralat('r-semak', '');
+  const tiket_id = $('s-tiket').value.trim().toUpperCase(), emel = $('s-emel').value.trim();
+  if (!tiket_id || !EMEL_RE.test(emel)) { ralat('r-semak', 'Isi No. tiket dan emel yang sah.'); return; }
+  const b = $('b-semak'); sibuk(b, true, 'Menyemak…');
+  try { $('hasil-semak').innerHTML = kadTiket(await api('semakTiket', { tiket_id, emel }), false); }
+  catch (err) { $('hasil-semak').innerHTML = ''; ralat('r-semak', err.message); }
+  finally { sibuk(b, false); }
+};
+
+/* ============ PIC ============ */
+function paparPIC() {
+  $('f-login').classList.toggle('hidden', !!SESI);
+  $('pic-papan').classList.toggle('hidden', !SESI);
+  if (SESI) {
+    $('pic-nama').textContent = SESI.nama;
+    $('pic-peranan').textContent = SESI.peranan === 'ADMIN' ? 'Admin · semua tiket' : 'PIC · tiket anda';
+  }
+}
+function keluar() {
+  SESI = null; TIKET = [];
+  try { sessionStorage.removeItem('eaduan_sesi'); } catch (e) {}
+  tutupModal(); paparPIC();
+}
+$('f-login').onsubmit = async e => {
+  e.preventDefault(); ralat('r-login', '');
+  const pic_id = $('l-id').value.trim(), pin = $('l-pin').value.trim();
+  if (!pic_id || !pin) { ralat('r-login', 'Isi No. Gaji dan PIN.'); return; }
+  const b = $('b-login'); sibuk(b, true, 'Log masuk…');
+  try {
+    SESI = await api('loginPIC', { pic_id, pin });
+    try { sessionStorage.setItem('eaduan_sesi', JSON.stringify(SESI)); } catch (er) {}
+    $('l-pin').value = ''; TAPIS = 'Baru';
+    paparPIC(); muatTiket();
+  } catch (err) { ralat('r-login', err.message); }
+  finally { sibuk(b, false); }
+};
+$('b-keluar').onclick = keluar;
+$('b-muat').onclick = () => muatTiket();
+
+const kumpulan = s => s === 'Ditutup' ? 'Selesai' : s;
+async function muatTiket() {
+  if (!SESI) return;
+  $('senarai').innerHTML = '<div class="kosong">Memuatkan…</div>';
+  try { TIKET = await api('senaraiTiketPIC', { token: SESI.token }); lukisSenarai(); }
+  catch (e) { if (SESI) $('senarai').innerHTML = `<div class="ralat" style="display:block">${esc(e.message)}</div>`; }
+}
+function lukisSenarai() {
+  $('chips').innerHTML = TAB.map(t => `<button type="button" data-t="${t}" class="${t === TAPIS ? 'aktif' : ''}">${t}<b>${TIKET.filter(x => kumpulan(x.status) === t).length}</b></button>`).join('');
+  $('chips').querySelectorAll('button').forEach(b => b.onclick = () => { TAPIS = b.dataset.t; lukisSenarai(); });
+  const l = TIKET.filter(x => kumpulan(x.status) === TAPIS);
+  $('senarai').innerHTML = l.length ? l.map(x => `
+    <div class="tiket ${esc(x.kesegeraan)}" data-id="${esc(x.tiket_id)}" tabindex="0" role="button">
+      <div class="atas"><span>${esc(x.tiket_id)} · ${fmt(x.tarikh_aduan)}</span>${['Kecemasan', 'Tinggi'].includes(x.kesegeraan) ? `<span class="lencana k-${esc(x.kesegeraan)}">${esc(x.kesegeraan)}</span>` : ''}</div>
+      <div class="tajuk">${esc(x.tajuk)}</div>
+      <div class="lok">${esc(x.kategori)} · ${esc(x.lokasi)}</div>
+      ${SESI.peranan === 'ADMIN' ? `<div class="lok">PIC: ${esc(x.pic_nama || '— belum diagih —')}</div>` : ''}
+      ${x.status === 'Perlukan Masa' && x.jangka_siap ? `<div class="lok">Jangka siap: ${fmtTarikh(x.jangka_siap)}</div>` : ''}
+    </div>`).join('') : `<div class="kosong">Tiada tiket dalam "${TAPIS}".</div>`;
+  $('senarai').querySelectorAll('.tiket').forEach(el => {
+    el.onclick = () => bukaTiket(el.dataset.id);
+    el.onkeydown = e => { if (e.key === 'Enter') bukaTiket(el.dataset.id); };
+  });
+}
+
+/* ============ Modal butiran tiket ============ */
+function tutupModal() { $('modal').classList.remove('buka'); document.body.style.overflow = ''; }
+$('m-tutup').onclick = tutupModal;
+$('modal').onclick = e => { if (e.target.id === 'modal') tutupModal(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') tutupModal(); });
+
+async function bukaTiket(id) {
+  $('m-isi').innerHTML = '<div class="kosong">Memuatkan…</div>';
+  $('modal').classList.add('buka'); document.body.style.overflow = 'hidden';
+  try { lukisButiran(await api('butiranTiket', { token: SESI.token, tiket_id: id })); }
+  catch (e) { $('m-isi').innerHTML = `<div class="ralat" style="display:block">${esc(e.message)}</div>`; }
+}
+
+function lukisButiran(a) {
+  let aksi = '';
+  if (a.status === 'Baru') {
+    aksi = `<div class="kad"><h2>Tindakan</h2>
+      <div class="aksi"><button class="btn" id="b-terima" type="button">Terima tiket</button><button class="btn bahaya" id="b-tolak" type="button">Tolak</button></div>
+      <div id="tolak-box" class="hidden">
+        <label for="t-sebab">Sebab tolak <span class="wajib">*</span></label>
+        <textarea id="t-sebab" maxlength="500" placeholder="Contoh: bukan bidang kerja saya, sila agih kepada kontraktor"></textarea>
+        <button class="btn penuh bahaya isi" id="b-tolak2" type="button">Hantar kepada admin</button>
+      </div>
+      <div class="ralat" id="r-aksi"></div></div>`;
+  } else if (a.status === 'Dalam Tindakan' || a.status === 'Perlukan Masa') {
+    aksi = `<form class="kad" id="f-log" novalidate><h2>Tambah log kerja</h2>
+      <label for="lg-tindakan">Tindakan yang diambil <span class="wajib">*</span></label>
+      <textarea id="lg-tindakan" maxlength="2000" placeholder="Contoh: Tukar starter dan tiub lampu"></textarea>
+      <label>Status kerja <span class="wajib">*</span></label>
+      <div class="segmen">
+        <label><input type="radio" name="sk" value="Siap"><span>Siap</span></label>
+        <label><input type="radio" name="sk" value="Tidak Siap"><span>Tidak Siap</span></label>
+        <label><input type="radio" name="sk" value="Perlukan Masa"><span>Perlukan Masa</span></label>
+      </div>
+      <div id="lg-masa" class="hidden"><div class="grid2">
+        <div><label for="lg-jangka">Jangka siap <span class="wajib">*</span></label><input type="date" id="lg-jangka"></div>
+        <div><label for="lg-sebab">Sebab</label><input id="lg-sebab" maxlength="200" placeholder="Contoh: menunggu alat ganti"></div>
+      </div></div>
+      <label>Gambar kerja (maksimum 3)</label>
+      <div class="gambar" id="g-log"></div>
+      <label class="semak-kotak"><input type="checkbox" id="lg-emel" checked> Hantar kemas kini kepada pengadu melalui emel</label>
+      <div class="ralat" id="r-log"></div>
+      <button class="btn penuh" id="b-log" type="submit">Simpan log</button></form>`;
+  }
+  $('m-isi').innerHTML = kadTiket(a, true) + aksi;
+
+  if ($('b-terima')) {
+    $('b-terima').onclick = () => aksiTiket('terimaTiket', { tiket_id: a.tiket_id }, $('b-terima'), 'r-aksi', 'Tiket diterima. Emel dihantar kepada pengadu.', false);
+    $('b-tolak').onclick = () => $('tolak-box').classList.toggle('hidden');
+    $('b-tolak2').onclick = () => {
+      const sebab = $('t-sebab').value.trim();
+      if (!sebab) { ralat('r-aksi', 'Nyatakan sebab tiket ditolak.'); return; }
+      aksiTiket('tolakTiket', { tiket_id: a.tiket_id, sebab }, $('b-tolak2'), 'r-aksi', 'Tiket dipulangkan kepada admin.', true);
+    };
+  }
+
+  if ($('f-log')) {
+    GAMBAR.log = []; pasangGambar('g-log', 'log');
+    const hariIni = new Date(); hariIni.setMinutes(hariIni.getMinutes() - hariIni.getTimezoneOffset());
+    $('lg-jangka').min = hariIni.toISOString().slice(0, 10);
+    document.querySelectorAll('input[name=sk]').forEach(r => r.onchange = () =>
+      $('lg-masa').classList.toggle('hidden', r.value !== 'Perlukan Masa' || !r.checked));
+    $('f-log').onsubmit = async e => {
+      e.preventDefault(); ralat('r-log', '');
+      const sk = (document.querySelector('input[name=sk]:checked') || {}).value;
+      const d = {
+        token: SESI.token, tiket_id: a.tiket_id, tindakan: $('lg-tindakan').value.trim(), status_kerja: sk,
+        jangka_siap: $('lg-jangka').value, sebab_lewat: $('lg-sebab').value.trim(),
+        hantar_emel: $('lg-emel').checked, gambar: muatanGambar('log')
+      };
+      const silap = !d.tindakan ? 'Isi tindakan yang diambil.' : !sk ? 'Pilih status kerja.'
+        : (sk === 'Perlukan Masa' && !d.jangka_siap) ? 'Isi tarikh jangka siap.' : '';
+      if (silap) { ralat('r-log', silap); return; }
+      const b = $('b-log'); sibuk(b, true, 'Menyimpan…');
+      try {
+        await api('simpanLog', d);
+        toast(d.hantar_emel ? 'Log disimpan dan emel dihantar kepada pengadu.' : 'Log disimpan.');
+        GAMBAR.log = [];
+        await muatTiket();
+        if (sk === 'Siap') tutupModal(); else bukaTiket(a.tiket_id);
+      } catch (err) { ralat('r-log', err.message); sibuk(b, false); }
+    };
+  }
+}
+
+async function aksiTiket(action, data, btn, ralatId, mesej, tutup) {
+  ralat(ralatId, ''); sibuk(btn, true);
+  try {
+    await api(action, Object.assign({ token: SESI.token }, data));
+    toast(mesej);
+    await muatTiket();
+    if (tutup) tutupModal(); else bukaTiket(data.tiket_id);
+  } catch (e) { ralat(ralatId, e.message); sibuk(btn, false); }
+}
+
+/* ============ Mula ============ */
+(function mula() {
+  lukisGambarAduan = pasangGambar('g-aduan', 'aduan');
+  isiSelect('bangunan', [], '', 'Memuatkan…'); resetLokasi('blok');
+  try { SESI = JSON.parse(sessionStorage.getItem('eaduan_sesi') || 'null'); } catch (e) { SESI = null; }
+  paparPIC();
+  const q = new URLSearchParams(location.search);
+  if (q.get('tiket')) { $('s-tiket').value = q.get('tiket').toUpperCase(); tukarView('semak'); $('s-emel').focus(); }
+  muatInduk();
+})();
+</script>
+</body>
+</html>
