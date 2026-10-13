@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ujian Akaun eAduan</title>
+<style>
+  :root { --biru:#1f3a5f; --hijau:#1e7a46; --merah:#b3261e; --kelabu:#5f6b7a; --latar:#f4f6f9; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--latar); color:#1b1f24; }
+  main { max-width:640px; margin:0 auto; padding:24px 16px 40px; }
+  h1 { font-size:20px; margin:0 0 4px; color:var(--biru); text-align:center; }
+  p.sub { margin:0 0 20px; text-align:center; color:var(--kelabu); font-size:14px; }
+  .kad { background:#fff; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  label { font-size:13px; font-weight:600; display:block; margin-bottom:6px; }
+  input[type=text] { width:100%; padding:10px; border:1px solid #cfd6df; border-radius:8px; font-size:14px; }
+  .baris { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .baris h2 { font-size:15px; margin:0; }
+  .baris small { color:var(--kelabu); display:block; margin-top:2px; }
+  button { background:var(--biru); color:#fff; border:0; border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; white-space:nowrap; }
+  button:disabled { opacity:.5; cursor:wait; }
+  .hasil { margin-top:10px; font-size:13px; white-space:pre-wrap; word-break:break-word; padding:10px; border-radius:8px; display:none; }
+  .ok { display:block; background:#e8f5ee; color:var(--hijau); }
+  .gagal { display:block; background:#fdecea; color:var(--merah); }
+  img.pratonton { max-width:100%; border-radius:8px; margin-top:8px; display:block; }
+  footer { text-align:center; font-size:12px; color:var(--kelabu); margin-top:24px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Ujian Akaun eAduan</h1>
+  <p class="sub">Semak sama ada Web App akaun domain boleh dipanggil dari GitHub</p>
+
+  <div class="kad">
+    <label for="api">URL Web App (/exec)</label>
+    <input id="api" type="text" placeholder="https://script.google.com/macros/s/.../exec">
+  </div>
+
+  <div class="kad">
+    <div class="baris">
+      <div><h2>1. Akses "Anyone"</h2><small>GET tanpa log masuk</small></div>
+      <button data-uji="ping">Uji</button>
+    </div>
+    <div class="hasil" id="h-ping"></div>
+  </div>
+
+  <div class="kad">
+    <div class="baris">
+      <div><h2>2. Google Sheets</h2><small>Baca helaian KATEGORI</small></div>
+      <button data-uji="ujiSheets">Uji</button>
+    </div>
+    <div class="hasil" id="h-ujiSheets"></div>
+  </div>
+
+  <div class="kad">
+    <div class="baris">
+      <div><h2>3. Drive + perkongsian luar</h2><small>Muat naik satu gambar</small></div>
+      <button data-uji="ujiDrive">Pilih gambar</button>
+    </div>
+    <input id="fail" type="file" accept="image/*" hidden>
+    <div class="hasil" id="h-ujiDrive"></div>
+  </div>
+
+  <div class="kad">
+    <div class="baris">
+      <div><h2>4. Emel (MailApp)</h2><small>Hantar ke emel admin</small></div>
+      <button data-uji="ujiEmel">Uji</button>
+    </div>
+    <div class="hasil" id="h-ujiEmel"></div>
+  </div>
+
+  <footer>Dibangunkan Oleh Unit Sains dan Unit ICT MRSM SAS 2026</footer>
+</main>
+
+<script>
+  const apiEl = document.getElementById('api');
+  try { apiEl.value = localStorage.getItem('eaduan_api') || ''; } catch (e) {}
+  apiEl.addEventListener('change', function () {
+    try { localStorage.setItem('eaduan_api', apiEl.value.trim()); } catch (e) {}
+  });
+
+  function papar(id, ok, teks) {
+    const el = document.getElementById('h-' + id);
+    el.className = 'hasil ' + (ok ? 'ok' : 'gagal');
+    el.textContent = (ok ? '✓ ' : '✗ ') + teks;
+    return el;
+  }
+
+  function petunjuk(err) {
+    return err + '\n\nKemungkinan: Web App tidak ditetapkan "Anyone", atau perkongsian luar Drive '
+      + 'masih disekat admin, jadi permintaan dihalakan ke halaman log masuk Google.';
+  }
+
+  async function panggil(action, data) {
+    const url = apiEl.value.trim();
+    if (!url) throw new Error('Masukkan URL Web App dahulu.');
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: action, data: data || {} })
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.ralat);
+    return j.data;
+  }
+
+  function mampat(file) {
+    return new Promise(function (res, rej) {
+      const img = new Image();
+      img.onload = function () {
+        const s = Math.min(1, 1280 / img.width);
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * s);
+        c.height = Math.round(img.height * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(img.src);
+        res(c.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = rej;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  async function jalan(action, btn, data) {
+    btn.disabled = true;
+    try {
+      let hasil;
+      if (action === 'ping') {
+        const url = apiEl.value.trim();
+        if (!url) throw new Error('Masukkan URL Web App dahulu.');
+        const r = await fetch(url);
+        hasil = (await r.json()).data;
+      } else {
+        hasil = await panggil(action, data);
+      }
+      const el = papar(action, true, JSON.stringify(hasil, null, 2));
+      if (hasil && hasil.thumb) {
+        const img = document.createElement('img');
+        img.className = 'pratonton';
+        img.alt = 'Gambar ujian dari Drive';
+        img.src = hasil.thumb;
+        el.appendChild(img);
+      }
+    } catch (err) {
+      papar(action, false, petunjuk(err.message || err));
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.querySelectorAll('button[data-uji]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const a = btn.dataset.uji;
+      if (a === 'ujiDrive') { document.getElementById('fail').click(); return; }
+      jalan(a, btn);
+    });
+  });
+
+  document.getElementById('fail').addEventListener('change', async function (e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    const btn = document.querySelector('button[data-uji="ujiDrive"]');
+    try {
+      const dataUrl = await mampat(f);
+      await jalan('ujiDrive', btn, { base64: dataUrl.split(',')[1], mime: 'image/jpeg' });
+    } catch (err) {
+      papar('ujiDrive', false, 'Gagal membaca gambar: ' + (err.message || err));
+    }
+    e.target.value = '';
+  });
+</script>
+</body>
+</html>
