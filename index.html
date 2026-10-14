@@ -233,7 +233,7 @@
 </div>
 <div id="toast" role="status"></div>
 
-<footer>Dibangunkan Oleh Unit Teknikal dan Unit ICT MRSM SAS 2026</footer>
+<footer>Dibangunkan Oleh Unit Sains dan Unit ICT MRSM SAS 2026</footer>
 
 <script>
 /* ============ TETAPAN ============ */
@@ -334,13 +334,13 @@ function isiSelect(id, arr, key, kosong) {
   s.innerHTML = `<option value="">${kosong}</option>` + arr.map(o => `<option value="${esc(o[key])}">${esc(o.nama)}</option>`).join('');
   s.disabled = arr.length === 0;
 }
-function resetLokasi(dari) {
-  const urutan = ['blok', 'aras', 'ruang'];
-  urutan.slice(urutan.indexOf(dari)).forEach(id => isiSelect(id, [], '', '—'));
+// Empat dropdown bebas: setiap satu dibaca terus daripada lajurnya dalam helaian LOKASI
+function isiLokasi() {
+  isiSelect('bangunan', INDUK ? INDUK.bangunan : [], 'bangunan_id', '— Pilih bangunan —');
+  isiSelect('blok', INDUK ? INDUK.blok : [], 'blok_id', '— Pilih blok —');
+  isiSelect('aras', INDUK ? INDUK.aras : [], 'aras_id', '— Pilih aras —');
+  isiSelect('ruang', INDUK ? INDUK.ruang : [], 'ruang_id', '— Pilih ruang —');
 }
-$('bangunan').onchange = () => { const v = $('bangunan').value; resetLokasi('blok'); if (v) isiSelect('blok', INDUK.blok.filter(b => b.bangunan_id === v), 'blok_id', '— Pilih blok —'); };
-$('blok').onchange = () => { const v = $('blok').value; resetLokasi('aras'); if (v) isiSelect('aras', INDUK.aras.filter(a => a.blok_id === v), 'aras_id', '— Pilih aras —'); };
-$('aras').onchange = () => { const v = $('aras').value; resetLokasi('ruang'); if (v) isiSelect('ruang', INDUK.ruang.filter(r => r.aras_id === v), 'ruang_id', '— Pilih ruang —'); };
 
 function pilihKategori(id) {
   KATEGORI_PILIH = INDUK && INDUK.kategori.some(k => k.kategori_id === id) ? id : '';
@@ -353,8 +353,7 @@ async function muatInduk() {
   $('kategori').innerHTML = INDUK.kategori.map(k =>
     `<button type="button" data-id="${esc(k.kategori_id)}"><span class="ikon">${IKON[k.ikon] || '📌'}</span><span>${esc(k.nama.replace(/^Aduan\s+/i, ''))}</span></button>`).join('');
   $('kategori').querySelectorAll('button').forEach(b => b.onclick = () => pilihKategori(b.dataset.id));
-  isiSelect('bangunan', INDUK.bangunan, 'bangunan_id', '— Pilih bangunan —');
-  resetLokasi('blok');
+  isiLokasi();
   const q = new URLSearchParams(location.search);
   if (q.get('kategori')) pilihKategori(q.get('kategori').toUpperCase());
 }
@@ -396,7 +395,7 @@ $('b-salin').onclick = () => {
 $('b-baru').onclick = () => {
   ['tajuk', 'keterangan', 'lokasi_lain'].forEach(id => $(id).value = '');
   document.querySelector('input[name=kes][value=Sederhana]').checked = true;
-  pilihKategori(''); $('bangunan').value = ''; resetLokasi('blok');
+  pilihKategori(''); ['bangunan', 'blok', 'aras', 'ruang'].forEach(id => $(id).value = '');
   GAMBAR.aduan = []; lukisGambarAduan();
   $('ok-aduan').classList.add('hidden'); $('f-aduan').classList.remove('hidden');
   window.scrollTo(0, 0);
@@ -596,7 +595,7 @@ async function aksiTiket(action, data, btn, ralatId, mesej, tutup) {
 /* ============ Mula ============ */
 (function mula() {
   lukisGambarAduan = pasangGambar('g-aduan', 'aduan');
-  isiSelect('bangunan', [], '', 'Memuatkan…'); resetLokasi('blok');
+  ['bangunan', 'blok', 'aras', 'ruang'].forEach(id => isiSelect(id, [], '', 'Memuatkan…'));
   try { SESI = JSON.parse(sessionStorage.getItem('eaduan_sesi') || 'null'); } catch (e) { SESI = null; }
   paparPIC();
   const q = new URLSearchParams(location.search);
