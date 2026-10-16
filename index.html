@@ -348,6 +348,7 @@
         <form class="kad" id="f-arkib" novalidate>
           <div class="tapis">
             <div><label for="a-q">No. tiket / ID HESK / nama</label><input id="a-q" placeholder="cth: ELK-2305 atau ICT-"></div>
+            <div><label for="a-bulan">Bulan</label><input id="a-bulan" type="month"></div>
             <div><label for="a-dari">Dari tarikh</label><input id="a-dari" type="date"></div>
             <div><label for="a-hingga">Hingga tarikh</label><input id="a-hingga" type="date"></div>
             <div><label for="a-kat">Kategori</label>
@@ -379,7 +380,7 @@
 // Backend eAduan (kekal, tidak diubah)
 const API_URL = 'https://script.google.com/macros/s/AKfycbxPpZkzjKS7KiME4GeWmBi53MtObLnv_djnN2WyNQ-WJmgxAUB-TvsvnIJuI-ZlauiodA/exec';
 // Backend Arkib HESK (berasingan) - tampal URL /exec selepas deploy arkib_app/Code.gs
-const ARKIB_API_URL = 'https://script.google.com/macros/s/AKfycbyyO29LoGbDw7vH23d3RJ2_0nszHy0k0HrncUyu3EyesRwHw9l61CFE3D0-mhHNvyTIHA/exec';
+const ARKIB_API_URL = 'PASTE_URL_ARKIB_DI_SINI';
 
 const IKON = { building:'🏢', bolt:'⚡', computer:'💻', restaurant:'🍽️', broom:'🧹', shield:'🛡️', chat:'💬' };
 const WARNA = { BGN:'#2563eb', ELK:'#d97706', ICT:'#7c3aed', DWS:'#ea580c', KBR:'#0d9488', KWL:'#475569', AWM:'#db2777' };
@@ -414,7 +415,8 @@ async function apiArk(action, data) {
   if (!/^https:\/\/script\.google\.com\//.test(ARKIB_API_URL)) throw new Error('Arkib HESK belum disambung (ARKIB_API_URL belum ditetapkan).');
   return hantar(ARKIB_API_URL, action, data, () => { ARK = null; simpanSesi(); });
 }
-function simpanSesi() { try { sessionStorage.setItem('eaduan_sesi', JSON.stringify(SESI)); sessionStorage.setItem('arkib_sesi', JSON.stringify(ARK)); } catch (e) {} }
+let ARK_ERR = '';
+function simpanSesi() { try { sessionStorage.setItem('eaduan_sesi', JSON.stringify(SESI)); sessionStorage.setItem('arkib_sesi', JSON.stringify(ARK)); sessionStorage.setItem('arkib_err', ARK_ERR); } catch (e) {} }
 function toast(m) { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3800); }
 function ralat(id, m) { const e = $(id); if (!e) return; e.textContent = m || ''; e.style.display = m ? 'block' : 'none'; }
 function fmt(iso) { if (!iso) return '-'; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' }); }
@@ -637,7 +639,7 @@ $('f-login').onsubmit = async e => {
     // Arkib: log masuk berasingan dengan ID/PIN yang sama; kegagalan tidak menghalang eAduan
     ARK = null;
     if (/^https:\/\/script\.google\.com\//.test(ARKIB_API_URL)) {
-      try { ARK = await apiArk('login', { pic_id, pin }); } catch (er) { ARK = null; }
+      try { ARK = await apiArk('login', { pic_id, pin }); ARK_ERR = ''; } catch (er) { ARK = null; ARK_ERR = er.message; }
     }
     simpanSesi();
     $('l-pin').value = ''; TAPIS = 'Baru'; SUB = 'eaduan';
@@ -786,13 +788,20 @@ async function cariArkib() {
   if (!ARK) {
     // cuba log masuk arkib semula jika tersedia (sesi tamat / belum cuba)
     $('a-senarai').innerHTML = `<div class="kosong">Akses Arkib HESK tidak tersedia untuk sesi ini.<br>
-      ${/^https:\/\/script\.google\.com\//.test(ARKIB_API_URL) ? 'Sila log keluar dan log masuk semula.' : 'Arkib HESK belum disambung oleh pentadbir sistem.'}</div>`;
+      ${/^https:\/\/script\.google\.com\//.test(ARKIB_API_URL) ? 'Punca: ' + esc(ARK_ERR || 'sesi arkib tamat') + '<br>Sila log keluar dan log masuk semula.' : 'Arkib HESK belum disambung oleh pentadbir sistem.'}</div>`;
     $('a-info').textContent = '';
     return;
   }
   $('a-cari').disabled = true; $('a-info').textContent = 'Memuatkan…';
   try {
-    const r = await apiArk('search', { token: ARK.token, q: $('a-q').value, dari: $('a-dari').value, hingga: $('a-hingga').value, kategori: $('a-kat').value, status: $('a-st').value });
+    let dari = $('a-dari').value, hingga = $('a-hingga').value;
+    const bulan = $('a-bulan').value; // yyyy-mm: mengatasi dari/hingga
+    if (bulan) {
+      const [y, m] = bulan.split('-').map(Number);
+      dari = bulan + '-01';
+      hingga = bulan + '-' + String(new Date(y, m, 0).getDate()).padStart(2, '0');
+    }
+    const r = await apiArk('search', { token: ARK.token, q: $('a-q').value, dari, hingga, kategori: $('a-kat').value, status: $('a-st').value });
     ARK_ROWS = r.rows;
     $('a-info').textContent = r.total + ' rekod' + (r.total > r.rows.length ? ` (dipaparkan ${r.rows.length} terbaru — tapis lagi untuk lihat selebihnya)` : '');
     $('a-senarai').innerHTML = r.rows.length ? r.rows.map((x, i) => `
@@ -846,7 +855,7 @@ function bukaArkib(i) {
 (function mula() {
   lukisGambarAduan = pasangGambar('g-aduan', 'aduan');
   ['bangunan', 'blok', 'aras', 'ruang'].forEach(id => isiSelect(id, [], '', 'Memuatkan…'));
-  try { SESI = JSON.parse(sessionStorage.getItem('eaduan_sesi') || 'null'); ARK = JSON.parse(sessionStorage.getItem('arkib_sesi') || 'null'); } catch (e) { SESI = null; ARK = null; }
+  try { SESI = JSON.parse(sessionStorage.getItem('eaduan_sesi') || 'null'); ARK = JSON.parse(sessionStorage.getItem('arkib_sesi') || 'null'); ARK_ERR = sessionStorage.getItem('arkib_err') || ''; } catch (e) { SESI = null; ARK = null; }
   paparPIC();
   const q = new URLSearchParams(location.search);
   if (q.get('tiket')) { $('s-tiket').value = q.get('tiket').toUpperCase(); tukarView('semak'); $('s-emel').focus(); }
