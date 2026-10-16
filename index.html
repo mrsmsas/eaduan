@@ -268,6 +268,8 @@
             <h2>3. Maklumat pengadu</h2>
             <label for="nama">Nama <span class="wajib">*</span></label>
             <input id="nama" maxlength="100" autocomplete="name">
+            <label for="no_maktab_gaji">No. Maktab / No. Gaji <span class="wajib">*</span></label>
+            <input id="no_maktab_gaji" maxlength="30" autocomplete="off" placeholder="Pelajar: No. Maktab · Staf: No. Gaji">
             <div class="grid2">
               <div><label for="emel">Emel <span class="wajib">*</span></label><input id="emel" type="email" maxlength="120" autocomplete="email"></div>
               <div><label for="telefon">No. telefon</label><input id="telefon" type="tel" maxlength="20" autocomplete="tel"></div>
@@ -541,7 +543,8 @@ $('f-aduan').onsubmit = async e => {
     lokasi_lain: $('lokasi_lain').value.trim(),
     tajuk: $('tajuk').value.trim(), keterangan: $('keterangan').value.trim(),
     kesegeraan: document.querySelector('input[name=kes]:checked').value,
-    nama: $('nama').value.trim(), emel: $('emel').value.trim(), telefon: $('telefon').value.trim(),
+    nama: $('nama').value.trim(), no_maktab_gaji: $('no_maktab_gaji').value.trim(),
+    emel: $('emel').value.trim(), telefon: $('telefon').value.trim(),
     gambar: muatanGambar('aduan')
   };
   const silap = !d.kategori_id ? 'Pilih kategori aduan.'
@@ -549,6 +552,7 @@ $('f-aduan').onsubmit = async e => {
     : !d.tajuk ? 'Isi tajuk ringkas.'
     : !d.keterangan ? 'Isi keterangan aduan.'
     : !d.nama ? 'Isi nama anda.'
+    : !d.no_maktab_gaji ? 'Isi No. Maktab / No. Gaji anda.'
     : !EMEL_RE.test(d.emel) ? 'Isi emel yang sah.' : '';
   if (silap) { ralat('r-aduan', silap); return; }
 
@@ -567,7 +571,7 @@ $('b-salin').onclick = () => {
   (navigator.clipboard ? navigator.clipboard.writeText(no) : Promise.reject()).then(() => toast('No. tiket disalin.'), () => toast(no));
 };
 $('b-baru').onclick = () => {
-  ['tajuk', 'keterangan', 'lokasi_lain'].forEach(id => $(id).value = '');
+  ['tajuk', 'keterangan', 'lokasi_lain', 'no_maktab_gaji'].forEach(id => $(id).value = '');
   document.querySelector('input[name=kes][value=Sederhana]').checked = true;
   ['bangunan', 'blok', 'aras', 'ruang'].forEach(id => $(id).value = '');
   GAMBAR.aduan = []; lukisGambarAduan();
@@ -586,7 +590,7 @@ function kadTiket(a, penuh) {
       <dt>PIC</dt><dd>${esc(a.pic_nama || 'Belum diagihkan')}</dd>
       ${a.jangka_siap && a.status !== 'Selesai' ? `<dt>Jangka siap</dt><dd>${fmtTarikh(a.jangka_siap)}</dd>` : ''}
       ${a.tarikh_selesai ? `<dt>Tarikh selesai</dt><dd>${fmt(a.tarikh_selesai)}</dd>` : ''}
-      ${penuh ? `<dt>Pengadu</dt><dd>${esc(a.nama_pengadu)}<br><a href="mailto:${esc(a.emel_pengadu)}">${esc(a.emel_pengadu)}</a>${a.telefon ? `<br><a href="tel:${esc(a.telefon)}">${esc(a.telefon)}</a>` : ''}</dd>` : ''}
+      ${penuh ? `<dt>Pengadu</dt><dd>${esc(a.nama_pengadu)}${a.no_maktab_gaji ? ` (${esc(a.no_maktab_gaji)})` : ''}<br><a href="mailto:${esc(a.emel_pengadu)}">${esc(a.emel_pengadu)}</a>${a.telefon ? `<br><a href="tel:${esc(a.telefon)}">${esc(a.telefon)}</a>` : ''}</dd>` : ''}
     </dl>
     <div class="keterangan">${esc(a.keterangan)}</div>
     ${thumbs(a.gambar)}
