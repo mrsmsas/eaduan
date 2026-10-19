@@ -278,7 +278,7 @@
     $d('dsb-isi').innerHTML = '<div class="dsb-skel"><i></i><i></i><i></i><i style="height:260px"></i></div>';
     $d('dsb-muat').disabled = true;
     try {
-      const d = await apiArk('dashboard', { token: ARK.token });
+      const d = await apiArk('dashboard', { token: ARK.token, segar: !!(paksa || BASI) });
       if (!d || !Array.isArray(d.rows)) throw new Error('Format data dashboard tidak sah.');
       SEMUA = sediaSemua(d.rows);
       const maxKemaskini = SEMUA.reduce((m, r) => { const t = ms(r.dikemaskini); return t && t > m ? t : m; }, 0);
