@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f2a52">
 <title>eAduan MRSM SAS</title>
+<link rel="stylesheet" href="dashboard-arkib.css?v=1">
 <style>
   :root{
     --navy:#0f2a52;--navy2:#1c4587;--blue:#2563eb;--gold:#f2b632;--gold2:#ffd36b;
@@ -337,6 +338,7 @@
       <div class="sub" role="tablist">
         <button type="button" data-sub="eaduan" class="aktif">eAduan</button>
         <button type="button" data-sub="arkib">Arkib HESK</button>
+        <button type="button" data-sub="dash" id="b-sub-dash" class="hidden">Dashboard Arkib</button>
       </div>
 
       <!-- eAduan (kekal) -->
@@ -344,6 +346,9 @@
         <div class="chips" id="chips"></div>
         <div class="senarai" id="senarai"></div>
       </div>
+
+      <!-- Dashboard Arkib (ADMIN sahaja; dibina oleh dashboard-arkib.js) -->
+      <div id="sub-dash" class="hidden"></div>
 
       <!-- Arkib HESK -->
       <div id="sub-arkib" class="hidden">
@@ -627,10 +632,13 @@ function paparPIC() {
     $('pic-nama').textContent = SESI.nama;
     $('pic-peranan').textContent = SESI.peranan === 'ADMIN' ? 'Admin · semua tiket' : 'PIC · tiket anda';
   }
+  $('b-sub-dash').classList.toggle('hidden', !(SESI && SESI.peranan === 'ADMIN'));
 }
 function keluar() {
   SESI = null; ARK = null; TIKET = []; ARK_ROWS = [];
   try { sessionStorage.removeItem('eaduan_sesi'); sessionStorage.removeItem('arkib_sesi'); } catch (e) {}
+  if (window.DashArkib) DashArkib.reset();
+  SUB = 'eaduan';
   tutupModal(); paparPIC();
 }
 $('f-login').onsubmit = async e => {
@@ -652,14 +660,16 @@ $('f-login').onsubmit = async e => {
   finally { sibuk(b, false); }
 };
 $('b-keluar').onclick = keluar;
-$('b-muat').onclick = () => SUB === 'arkib' ? cariArkib() : muatTiket();
+$('b-muat').onclick = () => SUB === 'arkib' ? cariArkib() : SUB === 'dash' ? (window.DashArkib && DashArkib.muat()) : muatTiket();
 
 function tukarSub(s) {
   SUB = s;
   document.querySelectorAll('.sub button').forEach(b => b.classList.toggle('aktif', b.dataset.sub === s));
   $('sub-eaduan').classList.toggle('hidden', s !== 'eaduan');
   $('sub-arkib').classList.toggle('hidden', s !== 'arkib');
-  if (s === 'eaduan') muatTiket(); else cariArkib();
+  $('sub-dash').classList.toggle('hidden', s !== 'dash');
+  if (s === 'dash' && !(SESI && SESI.peranan === 'ADMIN')) { SUB = s = 'eaduan'; tukarSub('eaduan'); return; }
+  if (s === 'eaduan') muatTiket(); else if (s === 'dash') { if (window.DashArkib) DashArkib.muat(); } else cariArkib();
 }
 document.querySelectorAll('.sub button').forEach(b => b.onclick = () => tukarSub(b.dataset.sub));
 
@@ -850,7 +860,8 @@ function bukaArkib(i) {
     const b = $('b-ark-sel'); sibuk(b, true, 'Menghantar…');
     try {
       const r = await apiArk('selesai', { token: ARK.token, tiket_id: x.tiket_id, catatan: $('ark-cat').value });
-      tutupModal(); toast('Selesai. Emel: ' + r.emel); cariArkib();
+      if (window.DashArkib) DashArkib.tanda_basi();
+      tutupModal(); toast('Selesai. Emel: ' + r.emel); if (SUB === 'dash') DashArkib.muat(); else cariArkib();
     } catch (err) { ralat('r-ark', err.message); sibuk(b, false); }
   };
 }
@@ -866,5 +877,7 @@ function bukaArkib(i) {
   muatInduk();
 })();
 </script>
+<script src="vendor/chart.umd.js"></script>
+<script src="dashboard-arkib.js?v=1"></script>
 </body>
 </html>
