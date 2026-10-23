@@ -110,7 +110,7 @@
   .lencana{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
   .s-Baru{background:var(--infobg);color:var(--info)}
   .s-DalamTindakan,.s-TidakSiap,.s-Proses{background:var(--warnbg);color:var(--warn)}
-  .s-PerlukanMasa{background:var(--ungubg);color:var(--ungu)}
+  .s-PerlukanMasa,.s-Forward{background:var(--ungubg);color:var(--ungu)}
   .s-Selesai,.s-Ditutup,.s-Siap{background:var(--okbg);color:var(--ok)}
   .k-Kecemasan{background:var(--badbg);color:var(--bad)}
   .k-Tinggi{background:var(--warnbg);color:var(--warn)}
@@ -629,7 +629,7 @@ function paparPIC() {
   }
 }
 function keluar() {
-  SESI = null; ARK = null; TIKET = []; ARK_ROWS = [];
+  SESI = null; ARK = null; TIKET = []; ARK_ROWS = []; PIC_LIST = null;
   try { sessionStorage.removeItem('eaduan_sesi'); sessionStorage.removeItem('arkib_sesi'); } catch (e) {}
   tutupModal(); paparPIC();
 }
@@ -733,7 +733,34 @@ function lukisButiran(a) {
       <div class="ralat" id="r-log"></div>
       <button class="btn penuh" id="b-log" type="submit">Simpan log</button></form>`;
   }
+  if (['Baru', 'Dalam Tindakan', 'Perlukan Masa'].includes(a.status)) {
+    aksi += `<div class="kad"><h2>Forward kepada PIC lain</h2>
+      <label for="fw-pic">PIC baharu <span class="wajib">*</span></label>
+      <select id="fw-pic" disabled><option value="">Memuatkan…</option></select>
+      <label for="fw-catatan">Catatan kepada PIC baharu <span class="wajib">*</span></label>
+      <textarea id="fw-catatan" maxlength="500" placeholder="Contoh: Kerosakan ini melibatkan pendawaian, mohon unit elektrik ambil tindakan"></textarea>
+      <div class="nota">Tiket akan dipindahkan kepada PIC yang dipilih dan direkod dalam log kerja.</div>
+      <div class="ralat" id="r-fw"></div>
+      <button class="btn penuh sekunder" id="b-fw" type="button">Forward tiket</button></div>`;
+  }
   $('m-isi').innerHTML = kadTiket(a, true) + aksi;
+
+  if ($('b-fw')) {
+    senaraiPIC().then(l => {
+      const s = $('fw-pic'); if (!s) return;
+      const lain = l.filter(p => !String(a.pic_nama || '').includes(p.nama));
+      s.innerHTML = `<option value="">— Pilih PIC —</option>` + lain.map(p => `<option value="${esc(p.pic_id)}">${esc(p.nama)}${p.unit ? ' · ' + esc(p.unit) : ''}</option>`).join('');
+      s.disabled = lain.length === 0;
+    }).catch(e => { ralat('r-fw', e.message); if ($('fw-pic')) $('fw-pic').innerHTML = '<option value="">Gagal memuatkan</option>'; });
+    $('b-fw').onclick = () => {
+      const pic_id_baru = $('fw-pic').value, catatan = $('fw-catatan').value.trim();
+      const silap = !pic_id_baru ? 'Pilih PIC baharu.' : !catatan ? 'Isi catatan kepada PIC baharu.' : '';
+      if (silap) { ralat('r-fw', silap); return; }
+      const nama = $('fw-pic').selectedOptions[0].textContent;
+      if (!confirm('Forward ' + a.tiket_id + ' kepada ' + nama + '?')) return;
+      aksiTiket('fwdTiket', { tiket_id: a.tiket_id, pic_id_baru, catatan }, $('b-fw'), 'r-fw', 'Tiket diforward kepada ' + nama + '.', SESI.peranan !== 'ADMIN');
+    };
+  }
 
   if ($('b-terima')) {
     $('b-terima').onclick = () => aksiTiket('terimaTiket', { tiket_id: a.tiket_id }, $('b-terima'), 'r-aksi', 'Tiket diterima. Emel dihantar kepada pengadu.', false);
@@ -772,6 +799,12 @@ function lukisButiran(a) {
       } catch (err) { ralat('r-log', err.message); sibuk(b, false); }
     };
   }
+}
+
+let PIC_LIST = null;
+async function senaraiPIC() {
+  if (!PIC_LIST) PIC_LIST = await api('senaraiPIC', { token: SESI.token });
+  return PIC_LIST;
 }
 
 async function aksiTiket(action, data, btn, ralatId, mesej, tutup) {
