@@ -242,9 +242,9 @@
               <div><label for="aras">Aras</label><select id="aras"></select></div>
               <div><label for="ruang">Ruang</label><select id="ruang"></select></div>
             </div>
-            <label for="lokasi_lain">Lokasi lain / maklumat tambahan</label>
-            <input id="lokasi_lain" maxlength="200" placeholder="Contoh: tepi tangga, berhampiran surau">
-            <div class="nota">Pilih bangunan, atau isi lokasi lain jika tiada dalam senarai.</div>
+            <label for="lokasi_lain">Lokasi lain / maklumat tambahan <span class="wajib">*</span></label>
+            <input id="lokasi_lain" maxlength="200" required placeholder="Contoh: Bilik 12, Asrama Blok A">
+            <div class="nota"><b>CONTOH: NYATAKAN NO BILIK ASRAMA.</b> JIKA TIDAK LENGKAP ADUAN MUNGKIN AKAN DITOLAK.</div>
           </div>
 
           <div class="kad">
@@ -548,7 +548,7 @@ $('f-aduan').onsubmit = async e => {
     gambar: muatanGambar('aduan')
   };
   const silap = !d.kategori_id ? 'Pilih kategori aduan.'
-    : (!d.bangunan_id && !d.lokasi_lain) ? 'Pilih bangunan, atau isi lokasi lain.'
+    : !d.lokasi_lain ? 'Isi lokasi lain / maklumat tambahan (cth: no bilik asrama).'
     : !d.tajuk ? 'Isi tajuk ringkas.'
     : !d.keterangan ? 'Isi keterangan aduan.'
     : !d.nama ? 'Isi nama anda.'
