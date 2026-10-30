@@ -122,7 +122,7 @@ CAPS = [(0.4, 2.7, "Hologram: aduan baharu dihantar\noleh pengadu"),
         (9.0, 15.4, "PIC membaca emel aduan"),
         (15.5, 17.0, "PIC menekan butang\nTERIMA ADUAN"),
         (17.0, 18.6, "Aduan diterima — hologram padam"),
-        (18.7, 21.9, "PIC meneruskan kerja\nStatus: Dalam Tindakan")]
+        (18.7, 20.5, "PIC meneruskan kerja\nStatus: Dalam Tindakan")]
 
 T_TAP = 15.8
 ADUAN_C = (790, 470)          # first hologram, above the PIC's right side
@@ -152,8 +152,35 @@ def draw_caption(d, t):
             lw = d.textlength(l, font=f_cap)
             d.text(((W - lw) / 2, y0 + i * 58), l, font=f_cap, fill=(255, 255, 255, A))
 
+GRADE = ("eq=contrast=1.12:brightness=-0.04:saturation=1.15,"
+         "colorbalance=rs=-0.10:gs=0.02:bs=0.12:rm=0.05:bm=-0.04:rh=-0.04:gh=0.01:bh=0.05,"
+         "curves=all='0/0.02 0.2/0.17 0.5/0.5 0.85/0.85 1/0.95',"
+         "unsharp=5:5:0.6,noise=alls=5:allf=t,vignette=PI/5")
+LOGO = Image.open(sys.argv[3]).convert("RGBA") if len(sys.argv) > 3 else None
+ZC = (470, 760)  # zoom centre, around the PIC's upper body
+
+def cam(t):
+    """Virtual camera: punch-in on the bell, kick + shake on the tap."""
+    z = 1 + 0.07 * ease(seg(t, 2.8, 3.2)) * (1 - ease(seg(t, 4.8, 5.6)))
+    z += 0.04 * math.exp(-8 * max(0.0, t - T_TAP)) * (t >= T_TAP)
+    sh = 10 * math.exp(-10 * max(0.0, t - T_TAP)) * (t >= T_TAP)
+    return z, sh * math.sin(t * 90), sh * math.cos(t * 70)
+
+def apply_cam(img, z, dx, dy):
+    if z <= 1.0005 and abs(dx) < 0.5 and abs(dy) < 0.5: return img
+    w, h = W / z, H / z
+    x0 = ZC[0] - ZC[0] / z + dx; y0 = ZC[1] - ZC[1] / z + dy
+    return img.transform((W, H), Image.EXTENT, (x0, y0, x0 + w, y0 + h), Image.BILINEAR)
+
+def cam_point(p, z, dx, dy): return ((p[0] - ZC[0] / 1) * z + ZC[0] - dx * z, (p[1] - ZC[1]) * z + ZC[1] - dy * z)
+
 # ---------- render ----------
-dec = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-i", SRC, "-t", str(DUR), "-vf", f"scale={W}:{H}:flags=lanczos,fps={FPS}",
+END = 20.4
+f_end, f_end2 = font(FB, 62), font(FB, 38)
+if LOGO:
+    LOGO_S = LOGO.resize((64, int(64 * LOGO.height / LOGO.width)), Image.LANCZOS)
+    LOGO_BIG = LOGO.resize((340, int(340 * LOGO.height / LOGO.width)), Image.LANCZOS)
+dec = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-i", SRC, "-t", str(DUR), "-vf", f"scale={W}:{H}:flags=lanczos,fps={FPS},{GRADE}",
                         "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
 enc = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
                         "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", "24",
@@ -163,10 +190,11 @@ while True:
     raw = dec.stdout.read(W * H * 3)
     if len(raw) < W * H * 3: break
     t = i / FPS
-    frame = Image.frombytes("RGB", (W, H), raw).convert("RGBA")
+    z, cdx, cdy = cam(t)
+    frame = apply_cam(Image.frombytes("RGB", (W, H), raw), z, cdx, cdy).convert("RGBA")
     holo = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     hd = ImageDraw.Draw(holo)
-    ph = phone_at(t)
+    ph = cam_point(phone_at(t), z, cdx, cdy)
     dis = seg(t, 17.0, 18.0)
 
     # 1) complaint hologram from the complainant
@@ -223,11 +251,38 @@ while True:
             s = rr.randint(2, 6)
             hd.ellipse((x - s, y - s + dis * 90, x + s, y + s + dis * 90), fill=(150, 240, 255, int(230 * (1 - dis))))
 
+    # light flash on the bell and on the tap
+    for at, col, strength in [(2.82, (200, 240, 255), 35), (3.62, (200, 240, 255), 25), (T_TAP, (150, 255, 190), 40)]:
+        if at <= t < at + 0.35:
+            a = int(strength * (1 - seg(t, at, at + 0.35)))
+            holo.alpha_composite(Image.new("RGBA", (W, H), col + (a,)))
+    # chromatic aberration while the holograms glitch out
+    if 0 < dis < 1 or 0.3 <= t < 0.55:
+        k = int(10 * (1 - abs(2 * dis - 1)) if dis > 0 else 8)
+        a = np.array(frame); a[..., 0] = np.roll(a[..., 0], k, axis=1); a[..., 2] = np.roll(a[..., 2], -k, axis=1)
+        frame = Image.fromarray(a)
     frame = Image.alpha_composite(frame, holo.filter(ImageFilter.GaussianBlur(12)))
     frame = Image.alpha_composite(frame, holo)
     d = ImageDraw.Draw(frame)
-    d.rounded_rectangle((30, 40, 390, 96), 14, fill=(0, 0, 0, 150))
-    d.text((50, 50), "eAduan MRSM SAS", font=f_tag, fill=(255, 255, 255, 255))
+    d.rounded_rectangle((30, 36, 440, 104), 16, fill=(0, 0, 0, 150))
+    if LOGO: frame.alpha_composite(LOGO_S, (42, 42))
+    d.text((122, 52), "eAduan MRSM SAS", font=f_tag, fill=(255, 255, 255, 255))
+    # end card
+    ec = ease(seg(t, END, END + 0.6))
+    if ec > 0:
+        bl = frame.filter(ImageFilter.GaussianBlur(18 * ec))
+        bl = Image.alpha_composite(bl, Image.new("RGBA", (W, H), (4, 14, 30, int(170 * ec))))
+        frame = bl; d = ImageDraw.Draw(frame)
+        if LOGO:
+            lg = LOGO_BIG.copy(); lg.putalpha(lg.getchannel("A").point(lambda v: int(v * ec)))
+            frame.alpha_composite(lg, ((W - lg.width) // 2, int(640 - 30 * (1 - ec))))
+        A = int(255 * ec)
+        for txt, fnt, y, col in [("eAduan MRSM SAS", f_end, 1020, (255, 255, 255)),
+                                 ("Aduan diterima. Tindakan segera.", f_end2, 1110, (120, 230, 255)),
+                                 ("Unit Teknikal & Unit ICT MRSM SAS", f_b, 1180, (200, 215, 230))]:
+            tw = d.textlength(txt, font=fnt)
+            d.text(((W - tw) / 2, y), txt, font=fnt, fill=col + (A,))
+        d.line((W / 2 - 220 * ec, 1090, W / 2 + 220 * ec, 1090), fill=(80, 230, 255, A), width=3)
     draw_caption(d, t)
     out = frame.convert("RGB")
     f = min(seg(t, 0, 0.4), 1 - seg(t, DUR - 0.6, DUR))
