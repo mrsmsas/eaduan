@@ -18,6 +18,8 @@
     "remotion:studio": "remotion studio remotion/index.js",
     "remotion:render": "remotion render remotion/index.js CountdownApresiasi out/countdown-remotion.mp4",
     "hf:sync": "rm -rf hyperframes/src hyperframes/assets hyperframes/vendor && mkdir -p hyperframes/vendor && cp -r src assets hyperframes/ && cp vendor/three.module.js hyperframes/vendor/ && cp -r vendor/addons hyperframes/vendor/ && cp node_modules/gsap/dist/gsap.min.js hyperframes/vendor/",
-    "hf:render": "npm run hf:sync && cd hyperframes && npx hyperframes render -o ../out/countdown-hyperframes.mp4"
+    "hf:render": "npm run hf:sync && cd hyperframes && npx hyperframes render -o ../out/countdown-hyperframes.mp4",
+    "sfx": "python3 scripts/make_sfx.py",
+    "mux": "for n in remotion hyperframes; do ffmpeg -y -i out/countdown-$n.mp4 -i assets/sfx.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -shortest out/countdown-$n-sfx.mp4; done"
   }
 }

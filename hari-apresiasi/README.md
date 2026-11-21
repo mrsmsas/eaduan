@@ -62,5 +62,5 @@ Banner akan memaparkan `N HARI LAGI`, `ESOK` (1) atau `HARI INI` (0).
 
 - Logo: `assets/logo.png` ialah logo MRSM daripada repo ini. Logo sekolah dalam video rujukan tidak digunakan.
 - Maskot dilukis dengan canvas (bukan aset daripada video rujukan).
-- Tiada audio dalam output. Tambah trek muzik pada Remotion (`<Audio />`) atau Hyperframes jika perlu.
+- Bunyi effect: `scripts/make_sfx.py` mensintesis `assets/sfx.wav` (disegerakkan dengan garis masa scene). `npm run sfx` jana semula, `npm run mux` gabungkan ke `out/countdown-*-sfx.mp4` tanpa render semula. Tiada muzik latar.
 - Atur cara penuh (7.30 pagi – 12.30 t/hari) hanya sebahagian dipaparkan; tambah/ubah entri di `stats.agenda`.
