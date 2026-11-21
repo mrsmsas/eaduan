@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Preview</title>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
+<style>html,body{margin:0;background:#111}canvas{display:block;width:min(100vw,calc(100vh*9/16));height:min(100vh,calc(100vw*16/9));margin:auto}</style></head>
+<body><canvas id="c" width="720" height="1280"></canvas>
+<script type="module">
+import { createScene, DURATION } from './src/scene.js';
+const scene = await createScene({ canvas: document.getElementById('c'), assetBase: './assets' });
+window.scene = scene; window.ready = true;
+const q = new URLSearchParams(location.search);
+if (q.has('t')) scene.renderAt(parseFloat(q.get('t')));
+else { const t0 = performance.now(); (function loop(){ scene.renderAt(((performance.now()-t0)/1000) % DURATION); requestAnimationFrame(loop); })(); }
+</script></body></html>

@@ -1,0 +1,23 @@
+{
+  "name": "hari-apresiasi",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@fontsource/playfair-display": "^5.3.0",
+    "@fontsource/plus-jakarta-sans": "^5.3.0",
+    "@remotion/cli": "^4.0.545",
+    "gsap": "^3.12.5",
+    "hyperframes": "^0.9.75",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.545",
+    "three": "^0.170.0"
+  },
+  "scripts": {
+    "preview": "python3 -m http.server 8765  # buka http://localhost:8765/preview.html",
+    "remotion:studio": "remotion studio remotion/index.js",
+    "remotion:render": "remotion render remotion/index.js CountdownApresiasi out/countdown-remotion.mp4",
+    "hf:sync": "rm -rf hyperframes/src hyperframes/assets hyperframes/vendor && mkdir -p hyperframes/vendor && cp -r src assets hyperframes/ && cp vendor/three.module.js hyperframes/vendor/ && cp -r vendor/addons hyperframes/vendor/ && cp node_modules/gsap/dist/gsap.min.js hyperframes/vendor/",
+    "hf:render": "npm run hf:sync && cd hyperframes && npx hyperframes render -o ../out/countdown-hyperframes.mp4"
+  }
+}
